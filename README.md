@@ -1,9 +1,7 @@
 # Configure GitHub MCP Server for Codex (macOS + Colima)
 
-This guide explains how to connect OpenAI Codex to the GitHub MCP Server using Docker (via Colima) and a GitHub Personal Access Token (PAT) stored in a local `.env` file. You get a clean startup/shutdown flow, keep the token off your Codex config, and avoid Docker Desktop altogether.
+This guide explains how to connect OpenAI Codex to the GitHub MCP Server using Docker (via Colima) and a GitHub Personal Access Token (PAT) stored in a local `.env` file. You get a clean startup/shutdown flow, keep the token out of your Codex config, and avoid Docker Desktop altogether.
 
-<<<<<<< HEAD
-=======
 ## TL;DR Quick Start
 
 Need it fast? Copy/paste the block below (replace the PAT value and your macOS username).
@@ -15,7 +13,7 @@ colima start
 
 # 2. Pull the GitHub MCP Server image (pin a release when available)
 docker pull ghcr.io/github/github-mcp-server:latest
-# docker pull ghcr.io/github/github-mcp-server:vX.Y.Z
+# docker pull ghcr.io/github/github-mcp-server:vX.Y.Z   # pin a tag once you select a release
 
 # 3. Create ~/.github-mcp.env with your fine-grained PAT and verify the container sees it
 echo "GITHUB_PERSONAL_ACCESS_TOKEN=github_pat_XXXXXXXXXXXXXXXXXXXXXXXX" > ~/.github-mcp.env
@@ -43,7 +41,6 @@ args = [
 
 Swap `:latest` for a tagged release (`:vX.Y.Z`) when you want reproducible builds across teammates.
 
->>>>>>> ccb1ff5 (Guide)
 ## Prerequisites
 
 - macOS with Homebrew
@@ -53,28 +50,21 @@ Swap `:latest` for a tagged release (`:vX.Y.Z`) when you want reproducible build
 
 ```bash
 brew install colima
-<<<<<<< HEAD
-colima start           # starts the Docker daemon (inside a lightweight VM)
-docker ps              # sanity check (should show no error)
-```
-
-=======
 colima start           # starts the Docker daemon inside a lightweight VM
 docker ps              # sanity check (should show no error)
 ```
 
-## Before you start: pull the server image
+## Before you start: Pull the server image
 
 Avoid first-run surprises by pulling the container ahead of time:
 
 ```bash
 docker pull ghcr.io/github/github-mcp-server:latest
-# docker pull ghcr.io/github/github-mcp-server:vX.Y.Z   # pin a version once you pick a release
+# docker pull ghcr.io/github/github-mcp-server:vX.Y.Z   # pin once you pick a release
 ```
 
 The README examples use `:latest` together with `--pull=always` so you automatically receive updates. For production workflows, pin a specific tag and remove `--pull=always`.
 
->>>>>>> ccb1ff5 (Guide)
 ## 1. Create a GitHub Personal Access Token (PAT)
 
 Create a fine-grained PAT with the following minimum settings:
@@ -86,23 +76,20 @@ Create a fine-grained PAT with the following minimum settings:
   - Contents: Read (or Read & write if you plan to push)
   - Issues: Read (or Read & write)
   - Pull requests: Read (or Read & write)
-- Optional: add Actions, Administration, Commit statuses for advanced automation
+- Optional: add Actions, Administration, Commit statuses for deeper automation
 
-If your organization uses SAML SSO, authorize the token for that org after creation. You will receive a token that looks like `github_pat_XXXXXXXXXXXXXXXX...`.
+If your organization uses SAML SSO, authorize the token for that org after creation. You will receive a token shaped like `github_pat_XXXXXXXXXXXXXXXX...`.
 
-<<<<<<< HEAD
-=======
-### Scope reference
+### Scope Reference
 
 | Action | Fine-grained scopes | Notes |
 | --- | --- | --- |
-| Read repositories and files | Metadata: Read, Contents: Read | Required for repo discovery, `get_file_contents`, default branch lookups |
-| Search issues and pull requests | Issues: Read, Pull requests: Read | Add write if you want to edit or create items |
+| Read repositories and files | Metadata: Read, Contents: Read | Required for repo discovery, default branch lookup, `get_file_contents` |
+| Search issues and pull requests | Issues: Read, Pull requests: Read | Add write for editing/creation workflows |
 | Create new issues | Issues: Read & write | Select target repositories and re-authorize for SAML orgs |
 | Push or edit files | Contents: Read & write | Enables `create_or_update_file` and commit operations |
-| List org repositories | Metadata: Read, Organization permissions (as needed) | Add `read:org` (classic) or equivalent fine-grained org access |
+| List org repositories | Metadata: Read, Organization access (as needed) | Add `read:org` (classic) or equivalent fine-grained org permission |
 
->>>>>>> ccb1ff5 (Guide)
 ## 2. Store the PAT in a local env file
 
 Create a hidden env file in your home directory and lock down permissions:
@@ -112,12 +99,7 @@ echo "GITHUB_PERSONAL_ACCESS_TOKEN=github_pat_XXXXXXXXXXXXXXXXXXXXXXXX" > ~/.git
 chmod 600 ~/.github-mcp.env
 ```
 
-<<<<<<< HEAD
-Docker will read this file locally and provide the environment variable to the container when it starts. The file never leaves your machine.
-
-To ensure the file never gets committed accidentally:
-=======
-Sanity-check that Docker can see the token before touching Codex:
+Sanity-check that Docker can read the token before touching Codex:
 
 ```bash
 docker run --rm --env-file ~/.github-mcp.env alpine sh -lc 'test -n "$GITHUB_PERSONAL_ACCESS_TOKEN" && echo OK'
@@ -126,7 +108,6 @@ docker run --rm --env-file ~/.github-mcp.env alpine sh -lc 'test -n "$GITHUB_PER
 Docker reads this file locally and injects the environment variable when the container starts. The file never leaves your machine.
 
 Optional guardrail so the token never lands in git history:
->>>>>>> ccb1ff5 (Guide)
 
 ```bash
 echo ".github-mcp.env" >> ~/.gitignore_global
@@ -141,16 +122,6 @@ Edit `~/.codex/config.toml` and add the GitHub MCP server entry:
 [mcp_servers.github]
 command = "docker"
 args = [
-<<<<<<< HEAD
-  "run","-i","--rm",
-  "--name","github-mcp",
-  "--env-file","/Users/YourMacUsername/.github-mcp.env",
-  "ghcr.io/github/github-mcp-server","stdio"
-]
-```
-
-Replace `YourMacUsername` with your macOS username. The `--name github-mcp` flag ensures only one container runs at a time, and `--rm` auto-cleans when Codex exits.
-=======
   "run","-i","--rm","--pull=always",
   "--name","github-mcp",
   "--env-file","/Users/YourMacUsername/.github-mcp.env",
@@ -175,7 +146,6 @@ args = [
 ```
 
 Available values include `repositories`, `issues`, `pull_requests`, `workflows`, and more—check `github-mcp-server --help` for the current list.
->>>>>>> ccb1ff5 (Guide)
 
 ### Optional: GitHub Enterprise
 
@@ -183,19 +153,11 @@ If you connect to GitHub Enterprise Server (GHES) or GitHub Enterprise Cloud wit
 
 ```toml
 args = [
-<<<<<<< HEAD
-  "run","-i","--rm",
-  "--name","github-mcp",
-  "--env-file","/Users/YourMacUsername/.github-mcp.env",
-  "-e","GITHUB_HOST=https://your-org.ghe.com",
-  "ghcr.io/github/github-mcp-server","stdio"
-=======
   "run","-i","--rm","--pull=always",
   "--name","github-mcp",
   "--env-file","/Users/YourMacUsername/.github-mcp.env",
   "-e","GITHUB_HOST=https://your-org.ghe.com",
   "ghcr.io/github/github-mcp-server:latest","stdio"
->>>>>>> ccb1ff5 (Guide)
 ]
 ```
 
@@ -208,26 +170,11 @@ colima start        # ensure Docker is running
 codex               # launch Codex; approve the docker run when prompted
 ```
 
-<<<<<<< HEAD
-Codex will show the MCP server under `/mcp`. The command it runs should look like:
-
-```bash
-docker run -i --rm --name github-mcp --env-file /Users/You/.github-mcp.env ghcr.io/github/github-mcp-server stdio
-```
-
-Choose `Yes` (or “Yes, and don’t ask again”) when Codex asks whether to run the MCP server.
-
-## 5. Verify in Codex
-
-Use any of the following Codex prompts to confirm everything works:
-
-=======
-The first time Codex connects, approve the `docker run`. You can select “Yes, and don’t ask again” once you trust the command.
+The first time Codex connects, approve the docker command. You can select “Yes, and don’t ask again” once you trust it.
 
 ## 5. Verify in Codex
 
 - Confirm the server is registered: in Codex, run `/mcp` (or view the MCP pane) and look for `github`.
->>>>>>> ccb1ff5 (Guide)
 - Basic info:
   ```
   Using only the `github` MCP tools, call `get_me`. Then call `search_repositories` with q="user:{login}" and per_page=100. Return a table: full_name | visibility | description.
@@ -245,27 +192,20 @@ The first time Codex connects, approve the `docker run`. You can select “Yes, 
 
 - Start Docker: `colima start`
 - Launch Codex: `codex`
-- Quit Codex with `Ctrl+C` (avoid using `Ctrl+Z`). The container auto-removes because of `--rm`.
-- To stop the container manually: `docker stop github-mcp`
-<<<<<<< HEAD
-=======
+- Quit Codex with `Ctrl+C` (avoid `Ctrl+Z`). The container auto-removes because of `--rm`.
+- Stop manually if needed: `docker stop github-mcp`
 - Refresh the image periodically: `docker pull ghcr.io/github/github-mcp-server:latest` (or rely on `--pull=always`)
 
 ## Diagnose issues quickly
 
-- If Codex reports it cannot start the server, re-run the token sanity check and make sure Docker Desktop is **not** required—Colima must be running.
-- A missing `/mcp/github` entry usually means the docker command failed; inspect `~/.codex/logs/latest.log` for the exact stderr.
-- If you see `unrecognized flag` errors, update the container (`docker pull ...`) to align with the config flags, or remove optional flags like `--toolsets`.
->>>>>>> ccb1ff5 (Guide)
+- If Codex reports it cannot start the server, re-run the token sanity check and confirm Colima is running.
+- A missing `/mcp/github` entry usually means the docker command failed; inspect `~/.codex/logs/latest.log` for the stderr output.
+- If you see `unrecognized flag` errors, update the container (`docker pull ...`) or remove optional flags like `--toolsets`.
 
 ## Troubleshooting
 
 - **401 Bad credentials**  
   The container cannot read a valid token. Verify `~/.github-mcp.env` contains a single line `GITHUB_PERSONAL_ACCESS_TOKEN=...` with a valid token. Test outside Codex:
-<<<<<<< HEAD
-
-=======
->>>>>>> ccb1ff5 (Guide)
   ```bash
   docker run --rm --env-file ~/.github-mcp.env alpine sh -lc 'test -n "$GITHUB_PERSONAL_ACCESS_TOKEN" && echo OK'
   ```
@@ -290,8 +230,6 @@ The first time Codex connects, approve the `docker run`. You can select “Yes, 
 - The token never ends up in images, configs, or source control.
 - Rotate the PAT periodically and update `~/.github-mcp.env` with the new value.
 
-<<<<<<< HEAD
-=======
 ## Dockerless fallback (build from source)
 
 If you cannot run Docker, clone the server and build it with Go 1.21+:
@@ -303,9 +241,8 @@ go build ./cmd/github-mcp-server
 ./github-mcp-server stdio
 ```
 
-Point Codex at the resulting binary (e.g., replace the `docker` command with `/path/to/github-mcp-server` in your config).
+Point Codex at the resulting binary (for example, replace the `docker` command with `/Users/you/github-mcp-server/github-mcp-server` in your config).
 
->>>>>>> ccb1ff5 (Guide)
 ## Appendix: Quick reference
 
 - Show hidden files (dotfiles):
